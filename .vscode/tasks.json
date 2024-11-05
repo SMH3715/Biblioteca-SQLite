@@ -1,0 +1,27 @@
+{
+    "tasks": [
+        {
+            "type": "cppbuild",
+            "label": "Compila y enlaza con SQLite3",
+            "command": "g++",
+            "args": [
+                "-g",
+                "${file}",
+                "resource.o",
+                "-o",
+                "${fileDirname}\\${fileBasenameNoExtension}.exe",
+                "-l",
+                "sqlite3",
+            ],
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Tarea generada por SaMH64."
+        }
+    ],
+    "version": "2.0.0"
+}
