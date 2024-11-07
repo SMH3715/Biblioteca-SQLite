@@ -4,6 +4,4 @@ Es un programa básico de consola que simula ser una biblioteca. Este carga, gua
 
 >Hasta ahora es capaz de almacenar usuarios, libros, y hacer prestamos ficticios.
 
->Se puede entrar desde el .exe que se encuentra en el repositorio.
-
 >No posee sistema de loging. se accede de forma predeterminada cómo un entre administrador.
