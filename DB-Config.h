@@ -876,7 +876,7 @@ bool validarAdmin(string username, string password)
 void cambiarContrasena(const string &username, const string &nuevaContrasena)
 {
     sqlite3 *DB;
-    int rc = sqlite3_open("BSUHMD.db", &DB);  // Abre la base de datos
+    int rc = sqlite3_open("BSUHMD.db", &DB); // Abre la base de datos
 
     if (rc)
     {

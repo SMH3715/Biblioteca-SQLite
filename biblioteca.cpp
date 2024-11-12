@@ -38,28 +38,36 @@ private:
 
 void mostrar_menu_libros()
 {
-    int option, anio, nuevoAnio;
-    string titulo, autor, anio_str, nuevoAnio_str;
+    int anio, nuevoAnio;
+    string titulo, autor, anio_str, nuevoAnio_str, option;
     string nuevoAutor, nuevoTitulo;
     regex patron("[a-zA-Z]+");
     while (true)
     {
-        system("clear");
-        cout << "0. Salir" << endl;
-        cout << "1. Agregar libros" << endl;
-        cout << "2. Borrar libro" << endl;
-        cout << "3. Modificar libro" << endl;
-        cout << "4. Catalogo" << endl;
-        cout << "Elija una opcion: ";
+        do
+        {
+            system("clear");
+            cout << "0. Salir" << endl;
+            cout << "1. Agregar libros" << endl;
+            cout << "2. Borrar libro" << endl;
+            cout << "3. Modificar libro" << endl;
+            cout << "4. Catalogo" << endl;
 
-        cin >> option;
+            cout << "Ingrese la opcion: ";
+            getline(cin, option);
+            if (option.empty())
+            {
+                cout << "Error: la opcion no puede estar vacía. Inténtelo de nuevo." << endl;
+                sleep(2);
+            }
+        } while (option.empty());
 
-        if (option == 0)
+        if (option == "0")
         {
             system("clear");
             break;
         }
-        else if (option == 1)
+        else if (option == "1")
         {
             system("clear");
 
@@ -103,7 +111,7 @@ void mostrar_menu_libros()
 
             agregar_libro(titulo, autor, anio);
         }
-        else if (option == 2)
+        else if (option == "2")
         {
             system("clear");
 
@@ -146,7 +154,7 @@ void mostrar_menu_libros()
             anio = stoi(anio_str);
             borrarLibro(titulo, autor, anio);
         }
-        else if (option == 3)
+        else if (option == "3")
         {
             regex patron_autor("^[A-Za-z ]+$"); // Solo permite letras y espacios
             regex patron_anio("^[0-9]+$");      // Solo permite números
@@ -219,34 +227,45 @@ void mostrar_menu_libros()
             modificarLibro(titulo, autor, anio, nuevoTitulo, nuevoAutor, nuevoAnio);
             system("clear");
         }
-        else if (option == 4)
+        else if (option == "4")
         {
             verTodosLosLibros();
+        }
+        else
+        {
+            cout << "Entrada invalida, intetelo de nuevo" << endl;
         }
     }
 }
 
 void mostrar_menu_usuarios()
 {
-    int option;
+    string option;
     string nombre, CI;
     while (true)
     {
-        system("clear");
-        cout << "0. Salir" << endl;
-        cout << "1. Agregar Usuarios " << endl;
-        cout << "2. Mostrar Usuarios " << endl;
-        cout << "3. Eliminar Usuarios " << endl;
-        cout << "Elija una opcion: ";
+        do
+        {
+            system("clear");
+            cout << "0. Salir" << endl;
+            cout << "1. Agregar Usuarios " << endl;
+            cout << "2. Mostrar Usuarios " << endl;
+            cout << "3. Eliminar Usuarios " << endl;
+            cout << "Ingrese la opcion: ";
+            getline(cin, option);
+            system("clear");
+            if (option.empty())
+            {
+                cout << "Error: la opcion no puede estar vacía. Inténtelo de nuevo." << endl;
+            }
+        } while (option.empty());
 
-        cin >> option;
-
-        if (option == 0)
+        if (option == "0")
         {
             system("clear");
             break;
         }
-        else if (option == 1)
+        else if (option == "1")
         {
             regex patron_nombre("^[A-Za-z ]+$"); // Solo permite letras y espacios
             regex patron_CI("^[0-9]{8}$");       // Solo permite números
@@ -284,11 +303,11 @@ void mostrar_menu_usuarios()
             agregar_usuario(nombre, CI);
             system("clear");
         }
-        else if (option == 2)
+        else if (option == "2")
         {
             verTodosLosUsuarios();
         }
-        else if (option == 3)
+        else if (option == "3")
         {
             regex patron_CI("^[0-9]{8}$");
             system("clear");
@@ -308,14 +327,16 @@ void mostrar_menu_usuarios()
             eliminar_usuario(CI);
             system("clear");
         }
+        else
+        {
+            cout << "Entrada Invalida, intentelo de nuevo" << endl;
+        }
     }
 }
 
 void mostrar_menu_prestamos()
 {
-    string CI, titulo;
-
-    int option;
+    string CI, titulo, option;
     while (true)
     {
         system("clear");
@@ -323,16 +344,24 @@ void mostrar_menu_prestamos()
         cout << "1. Agregar Prestamos " << endl;
         cout << "2. Mostrar Prestamos " << endl;
         cout << "3. Devolver Libro " << endl;
-        cout << "Elija una opcion: ";
 
-        cin >> option;
+        do
+        {
+            cout << "Ingrese la opcion: ";
+            getline(cin, option);
+            system("clear");
+            if (option.empty())
+            {
+                cout << "Error: la opcion no puede estar vacía. Inténtelo de nuevo." << endl;
+            }
+        } while (option.empty());
 
-        if (option == 0)
+        if (option == "0")
         {
             system("clear");
             break;
         }
-        else if (option == 1)
+        else if (option == "1")
         {
             regex patron_CI("^[0-9]{8}$");
             system("clear");
@@ -363,12 +392,12 @@ void mostrar_menu_prestamos()
 
             agregarPrestamo(CI, titulo);
         }
-        else if (option == 2)
+        else if (option == "2")
         {
             system("clear");
             mostrarPrestamos();
         }
-        else if (option == 3)
+        else if (option == "3")
         {
             regex patron_CI("^[0-9]{8}$");
             system("clear");
@@ -400,6 +429,10 @@ void mostrar_menu_prestamos()
             devolverLibro(CI, titulo);
             system("clear");
         }
+        else
+        {
+            cout << "Entrada invalida, intentelo de nuevo" << endl;
+        }
     }
 }
 
@@ -408,7 +441,7 @@ int main()
     crearDB();
     string username, password;
 
-    int opcion;
+    string opcion;
     int ancho = 80; // Anchura de la consola
     std::string texto = "Bienvenido a la biblioteca.";
     std::cout << std::setw(ancho) << std::setfill(' ') << std::left << texto << std::endl;
@@ -417,11 +450,26 @@ int main()
 
     while (true)
     {
-        cout << "Ingrese el username: ";
-        cin >> username;
-        cout << "Ingrese la contrasena: ";
-        cin >> password;
-        system("clear");
+        do
+        {
+            cout << "Ingrese el username: ";
+            getline(cin, username);
+            system("clear");
+            if (username.empty())
+            {
+                cout << "Error: el username no puede estar vacío. Inténtelo de nuevo." << endl;
+            }
+        } while (username.empty());
+        do
+        {
+            cout << "Ingrese la contrasena: ";
+            getline(cin, password);
+            system("clear");
+            if (password.empty())
+            {
+                cout << "Error: la contrasena no puede estar vacío. Inténtelo de nuevo." << endl;
+            }
+        } while (password.empty());
         bool validacionAdmin = validarAdmin(username, password);
         if (validacionAdmin)
         {
@@ -435,7 +483,7 @@ int main()
         {
             cout << "Usuario o contrasena incorrecto" << endl;
         }
-    } 
+    }
 
     while (true)
     {
@@ -446,11 +494,19 @@ int main()
         cout << "2. Prestamos" << endl;
         cout << "3. Usuarios" << endl;
         cout << "4. Cambiar contrasena" << endl;
-        cout << "Elija una opcion: ";
 
-        cin >> opcion;
+        do
+        {
+            cout << "Ingrese la opcion: ";
+            getline(cin, opcion);
+            system("clear");
+            if (opcion.empty())
+            {
+                cout << "Error: la opcion no puede estar vacía. Inténtelo de nuevo." << endl;
+            }
+        } while (username.empty());
 
-        if (opcion == 0)
+        if (opcion == "0")
         {
             system("clear");
             cout << "Gracias por usar la biblioteca." << endl;
@@ -460,19 +516,19 @@ int main()
             sleep(2);
             break;
         }
-        else if (opcion == 1)
+        else if (opcion == "1")
         {
             mostrar_menu_libros();
         }
-        else if (opcion == 2)
+        else if (opcion == "2")
         {
             mostrar_menu_prestamos();
         }
-        else if (opcion == 3)
+        else if (opcion == "3")
         {
             mostrar_menu_usuarios();
         }
-        else if (opcion == 4)
+        else if (opcion == "4")
         {
             while (true)
             {
@@ -492,7 +548,16 @@ int main()
                 }
             }
         }
+        else
+        {
+            cout << "Entrada invalida, intentelo de nuevo" << endl;
+        }
     }
 
     return 0;
 }
+//Autores
+//Bryto
+//SaMH64
+//Virtorx
+//Alvaro Maker
