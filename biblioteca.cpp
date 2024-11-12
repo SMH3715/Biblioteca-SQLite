@@ -5,6 +5,7 @@
 #include <conio.h>
 #include <iomanip>
 #include <stdio.h>
+#include <regex>
 // #include <sstream>   // Para convertir cadenas a números
 #include <sqlite3.h> //Libreria para Data Base
 #include "DB-Config.h"
@@ -38,9 +39,9 @@ private:
 void mostrar_menu_libros()
 {
     int option, anio, nuevoAnio;
-    string titulo, autor;
+    string titulo, autor, anio_str, nuevoAnio_str;
     string nuevoAutor, nuevoTitulo;
-
+    regex patron("[a-zA-Z]+");
     while (true)
     {
         system("clear");
@@ -61,42 +62,160 @@ void mostrar_menu_libros()
         else if (option == 1)
         {
             system("clear");
-            cout << "Ingrese el titulo del libro: " << endl;
-            cin >> titulo;
-            cout << "Ingrese el autor del libro: " << endl;
-            cin >> autor;
-            cout << "Ingrese el anio de publicacion del libro: " << endl;
-            cin >> anio;
+
+            cin.ignore();
+            do
+            {
+                cout << "Ingrese el título del libro: ";
+                getline(cin, titulo);
+                system("clear");
+                if (titulo.empty())
+                {
+                    cout << "Error: el título no puede estar vacío. Inténtelo de nuevo." << endl;
+                }
+            } while (titulo.empty());
+
+            regex patron_autor("^[A-Za-z ]+$");
+            do
+            {
+                cout << "Ingrese el autor del libro (solo letras): ";
+                getline(cin, autor);
+                system("clear");
+                if (!regex_match(autor, patron_autor))
+                {
+                    cout << "Error: el nombre del autor solo puede contener letras y espacios. No puede estar vacio." << endl;
+                }
+            } while (!regex_match(autor, patron_autor));
+
+            regex patron_anio("^[0-9]+$");
+            do
+            {
+                cout << "Ingrese el año de publicación del libro (solo números): ";
+                cin >> anio_str;
+                system("clear");
+                if (!regex_match(anio_str, patron_anio))
+                {
+                    cout << "Error: el año de publicación solo puede contener números." << endl;
+                }
+            } while (!regex_match(anio_str, patron_anio));
+
+            anio = stoi(anio_str);
 
             agregar_libro(titulo, autor, anio);
         }
         else if (option == 2)
         {
             system("clear");
-            cout << "Ingrese el titulo del libro: " << endl;
-            cin >> titulo;
-            cout << "Ingrese el autor del libro: " << endl;
-            cin >> autor;
-            cout << "Ingrese el anio de publicacion del libro: " << endl;
-            cin >> anio;
+
+            cin.ignore();
+            do
+            {
+                cout << "Ingrese el título del libro: ";
+                getline(cin, titulo);
+                system("clear");
+                if (titulo.empty())
+                {
+                    cout << "Error: el título no puede estar vacío. Inténtelo de nuevo." << endl;
+                }
+            } while (titulo.empty());
+
+            regex patron_autor("^[A-Za-z ]+$");
+            do
+            {
+                cout << "Ingrese el autor del libro (solo letras): ";
+                getline(cin, autor);
+                system("clear");
+                if (!regex_match(autor, patron_autor))
+                {
+                    cout << "Error: el nombre del autor solo puede contener letras y espacios. No puede estar vacio." << endl;
+                }
+            } while (!regex_match(autor, patron_autor));
+
+            regex patron_anio("^[0-9]+$");
+            do
+            {
+                cout << "Ingrese el año de publicación del libro (solo números): ";
+                cin >> anio_str;
+                system("clear");
+                if (!regex_match(anio_str, patron_anio))
+                {
+                    cout << "Error: el año de publicación solo puede contener números." << endl;
+                }
+            } while (!regex_match(anio_str, patron_anio));
+
+            anio = stoi(anio_str);
             borrarLibro(titulo, autor, anio);
         }
         else if (option == 3)
         {
+            regex patron_autor("^[A-Za-z ]+$"); // Solo permite letras y espacios
+            regex patron_anio("^[0-9]+$");      // Solo permite números
+
             system("clear");
-            cout << "Ingrese el titulo del libro: " << endl;
-            cin >> titulo;
-            cout << "Ingrese el autor del libro: " << endl;
-            cin >> autor;
-            cout << "Ingrese el anio de publicacion del libro: " << endl;
-            cin >> anio;
+            cin.ignore();
+            do
+            {
+                cout << "Ingrese el titulo del libro: " << endl;
+                getline(cin, titulo);
+                if (titulo.empty())
+                {
+                    cout << "Error: El título no puede estar vacío." << endl;
+                }
+            } while (titulo.empty());
+
+            do
+            {
+                cout << "Ingrese el autor del libro: " << endl;
+                getline(cin, autor);
+                if (!regex_match(autor, patron_autor))
+                {
+                    cout << "Error: El autor solo puede contener letras y espacios." << endl;
+                }
+            } while (!regex_match(autor, patron_autor));
+
+            do
+            {
+                cout << "Ingrese el anio de publicacion del libro: " << endl;
+                cin >> anio_str;
+                if (!regex_match(anio_str, patron_anio))
+                {
+                    cout << "Error: El año de publicación solo puede contener números." << endl;
+                }
+            } while (!regex_match(anio_str, patron_anio));
+            anio = stoi(anio_str);
+
             system("clear");
-            cout << "Ingrese el nuevo titulo del libro: " << endl;
-            cin >> nuevoTitulo;
-            cout << "Ingrese el nuevo autor del libro: " << endl;
-            cin >> nuevoAutor;
-            cout << "Ingrese el nuevo anio de publicacion del libro: " << endl;
-            cin >> nuevoAnio;
+            do
+            {
+                cout << "Ingrese el nuevo titulo del libro: " << endl;
+                getline(cin, nuevoTitulo);
+                if (nuevoTitulo.empty())
+                {
+                    cout << "Error: El nuevo título no puede estar vacío." << endl;
+                }
+            } while (nuevoTitulo.empty());
+
+            do
+            {
+                cout << "Ingrese el nuevo autor del libro: " << endl;
+                getline(cin, nuevoAutor);
+                if (!regex_match(nuevoAutor, patron_autor))
+                {
+                    cout << "Error: El nuevo autor solo puede contener letras y espacios." << endl;
+                }
+            } while (!regex_match(nuevoAutor, patron_autor));
+
+            do
+            {
+                cout << "Ingrese el nuevo anio de publicacion del libro: " << endl;
+                cin >> nuevoAnio_str;
+                if (!regex_match(nuevoAnio_str, patron_anio))
+                {
+                    cout << "Error: El nuevo año de publicación solo puede contener números." << endl;
+                }
+            } while (!regex_match(nuevoAnio_str, patron_anio));
+            nuevoAnio = stoi(nuevoAnio_str);
+
             modificarLibro(titulo, autor, anio, nuevoTitulo, nuevoAutor, nuevoAnio);
             system("clear");
         }
@@ -109,7 +228,6 @@ void mostrar_menu_libros()
 
 void mostrar_menu_usuarios()
 {
-
     int option;
     string nombre, CI;
     while (true)
@@ -130,11 +248,39 @@ void mostrar_menu_usuarios()
         }
         else if (option == 1)
         {
+            regex patron_nombre("^[A-Za-z ]+$"); // Solo permite letras y espacios
+            regex patron_CI("^[0-9]{8}$");       // Solo permite números
+
             system("clear");
-            cout << " Ingrese su nombre de usuario " << endl;
-            cin >> nombre;
-            cout << "Ingrese la CI del Usuario " << endl;
-            cin >> CI;
+            cin.ignore();
+            do
+            {
+                cout << "Ingrese su nombre de usuario: ";
+                getline(cin, nombre);
+                if (nombre.empty())
+                {
+                    cout << "Error: El nombre no puede estar vacío." << endl;
+                }
+                else if (!regex_match(nombre, patron_nombre))
+                {
+                    cout << "Error: El nombre solo puede contener letras y espacios." << endl;
+                }
+            } while (nombre.empty() || !regex_match(nombre, patron_nombre));
+
+            do
+            {
+                cout << "Ingrese la CI del Usuario: ";
+                cin >> CI;
+                if (CI.empty())
+                {
+                    cout << "Error: La CI no puede estar vacía." << endl;
+                }
+                else if (!regex_match(CI, patron_CI))
+                {
+                    cout << "Error: La CI solo puede contener números y ser de 8 cifras." << endl;
+                }
+            } while (CI.empty() || !regex_match(CI, patron_CI));
+
             agregar_usuario(nombre, CI);
             system("clear");
         }
@@ -144,9 +290,21 @@ void mostrar_menu_usuarios()
         }
         else if (option == 3)
         {
+            regex patron_CI("^[0-9]{8}$");
             system("clear");
-            cout << "Ingrese la CI del Usuario " << endl;
-            cin >> CI;
+            do
+            {
+                cout << "Ingrese la CI del Usuario: ";
+                cin >> CI;
+                if (CI.empty())
+                {
+                    cout << "Error: La CI no puede estar vacía." << endl;
+                }
+                else if (!regex_match(CI, patron_CI))
+                {
+                    cout << "Error: La CI solo puede contener números y ser de 8 cifras." << endl;
+                }
+            } while (CI.empty() || !regex_match(CI, patron_CI));
             eliminar_usuario(CI);
             system("clear");
         }
@@ -176,8 +334,34 @@ void mostrar_menu_prestamos()
         }
         else if (option == 1)
         {
+            regex patron_CI("^[0-9]{8}$");
             system("clear");
-            agregarPrestamo();
+            do
+            {
+                cout << "Ingrese la CI del Usuario: ";
+                cin >> CI;
+                if (CI.empty())
+                {
+                    cout << "Error: La CI no puede estar vacía." << endl;
+                }
+                else if (!regex_match(CI, patron_CI))
+                {
+                    cout << "Error: La CI solo puede contener números y ser de 8 cifras." << endl;
+                }
+            } while (CI.empty() || !regex_match(CI, patron_CI));
+            cin.ignore();
+            do
+            {
+                cout << "Ingrese el título del libro: ";
+                getline(cin, titulo);
+                system("clear");
+                if (titulo.empty())
+                {
+                    cout << "Error: el título no puede estar vacío. Inténtelo de nuevo." << endl;
+                }
+            } while (titulo.empty());
+
+            agregarPrestamo(CI, titulo);
         }
         else if (option == 2)
         {
@@ -186,11 +370,32 @@ void mostrar_menu_prestamos()
         }
         else if (option == 3)
         {
+            regex patron_CI("^[0-9]{8}$");
             system("clear");
-            cout << "Ingrese la CI del Usuario " << endl;
-            cin >> CI;
-            cout << "Ingrese el titulo del libro: " << endl;
-            cin >> titulo;
+            do
+            {
+                cout << "Ingrese la CI del Usuario: ";
+                cin >> CI;
+                if (CI.empty())
+                {
+                    cout << "Error: La CI no puede estar vacía." << endl;
+                }
+                else if (!regex_match(CI, patron_CI))
+                {
+                    cout << "Error: La CI solo puede contener números y ser de 8 cifras." << endl;
+                }
+            } while (CI.empty() || !regex_match(CI, patron_CI));
+            cin.ignore();
+            do
+            {
+                cout << "Ingrese el título del libro: ";
+                getline(cin, titulo);
+                system("clear");
+                if (titulo.empty())
+                {
+                    cout << "Error: el título no puede estar vacío. Inténtelo de nuevo." << endl;
+                }
+            } while (titulo.empty());
 
             devolverLibro(CI, titulo);
             system("clear");
@@ -201,6 +406,7 @@ void mostrar_menu_prestamos()
 int main()
 {
     crearDB();
+    string username, password;
 
     int opcion;
     int ancho = 80; // Anchura de la consola
@@ -208,6 +414,29 @@ int main()
     std::cout << std::setw(ancho) << std::setfill(' ') << std::left << texto << std::endl;
     sleep(4);
     system("clear");
+
+    while (true)
+    {
+        cout << "Ingrese el username: ";
+        cin >> username;
+        cout << "Ingrese la contrasena: ";
+        cin >> password;
+        system("clear");
+        bool validacionAdmin = validarAdmin(username, password);
+        if (validacionAdmin)
+        {
+            system("clear");
+            cout << "Bienvenido Administrador" << endl;
+            sleep(3);
+            system("clear");
+            break;
+        }
+        else
+        {
+            cout << "Usuario o contrasena incorrecto" << endl;
+        }
+    } 
+
     while (true)
     {
         cout << "Menu Principal: " << endl;
@@ -216,7 +445,9 @@ int main()
         cout << "1. Libros" << endl;
         cout << "2. Prestamos" << endl;
         cout << "3. Usuarios" << endl;
+        cout << "4. Cambiar contrasena" << endl;
         cout << "Elija una opcion: ";
+
         cin >> opcion;
 
         if (opcion == 0)
@@ -241,11 +472,27 @@ int main()
         {
             mostrar_menu_usuarios();
         }
+        else if (opcion == 4)
+        {
+            while (true)
+            {
+                cout << "Ingrese el username: ";
+                cin >> username;
+                cout << "Ingrese la contrasena: ";
+                cin >> password;
+                system("clear");
+                bool validacionAdmin = validarAdmin(username, password);
+                if (validacionAdmin)
+                {
+                    system("clear");
+                    cout << "Introduzca la nueva contrasena: ";
+                    cin >> password;
+                    cambiarContrasena(username, password);
+                    system("clear");
+                }
+            }
+        }
     }
-
-    /* agregar_usuario("Samir", "31312232");
-    agregar_libro("El Principito", "Antoine de Saint-Exupéry", 1949);
-    agregar_prestamo("31312232", "El Principito", "Antoine de Saint-Exupéry"); */
 
     return 0;
 }

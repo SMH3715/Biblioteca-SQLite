@@ -54,6 +54,8 @@
     "text_encoding": "cpp",
     "typeinfo": "cpp",
     "variant": "cpp",
-    "iomanip": "cpp"
+    "iomanip": "cpp",
+    "bitset": "cpp",
+    "regex": "cpp"
   }
 }

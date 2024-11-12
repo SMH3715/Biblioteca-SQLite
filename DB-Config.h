@@ -71,9 +71,17 @@ void crearDB()
             FOREIGN KEY (id_usuario) REFERENCES usuarios (id_usuario),
             FOREIGN KEY (id_libro) REFERENCES libros (id_libro)
         );
-
-
-
+        CREATE TABLE IF NOT EXISTS admin (
+            id_admin INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL,
+            password TEXT NOT NULL
+        );
+        INSERT INTO admin (username, password) VALUES ('Admin', 1234);
+            CREATE FUNCTION cambiarPassword(username TEXT, newPassword TEXT) RETURNS VOID AS $$
+            BEGIN
+        UPDATE admin SET password = newPassword WHERE username = username;
+        END;
+        $$;
     )";
 
         exist = sqlite3_exec(DB, sql.c_str(), NULL, 0, 0);
@@ -109,15 +117,18 @@ void agregar_usuario(const string &nombre, const string &CI)
         if (rc == SQLITE_DONE)
         {
             cout << "Usuario agregado exitosamente" << endl;
+            sleep(2);
         }
         else
         {
             cout << "Error al agregar el usuario: " << sqlite3_errmsg(DB) << endl;
+            sleep(2);
         }
     }
     else
     {
         cout << "Error al preparar la consulta: " << sqlite3_errmsg(DB) << endl;
+        sleep(2);
     }
 
     sqlite3_finalize(stmt);
@@ -298,86 +309,149 @@ void agregar_prestamo(string CI, string titulo, string autor)
 void borrarLibro(const string &titulo, const string &autor, int anio)
 {
     sqlite3_open("BSUHMD.db", &DB);
-    string sql = "DELETE FROM libros WHERE titulo = ? AND autor = ? AND anio = ?";
 
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(DB, sql.c_str(), -1, &stmt, NULL);
+    // Verificar si el libro existe en la base de datos
+    string check_sql = "SELECT COUNT(*) FROM libros WHERE titulo = ? AND autor = ? AND anio = ?";
+    sqlite3_stmt *check_stmt;
+    int rc = sqlite3_prepare_v2(DB, check_sql.c_str(), -1, &check_stmt, NULL);
 
     if (rc == SQLITE_OK)
     {
-        // Asociar los parámetros a la consulta
-        sqlite3_bind_text(stmt, 1, titulo.c_str(), -1, SQLITE_STATIC);
-        sqlite3_bind_text(stmt, 2, autor.c_str(), -1, SQLITE_STATIC);
-        sqlite3_bind_int(stmt, 3, anio);
+        // Asociar los parámetros a la consulta de verificación
+        sqlite3_bind_text(check_stmt, 1, titulo.c_str(), -1, SQLITE_STATIC);
+        sqlite3_bind_text(check_stmt, 2, autor.c_str(), -1, SQLITE_STATIC);
+        sqlite3_bind_int(check_stmt, 3, anio);
 
-        rc = sqlite3_step(stmt);
+        // Ejecutar la consulta de verificación
+        rc = sqlite3_step(check_stmt);
+        int count = sqlite3_column_int(check_stmt, 0);
 
-        if (rc == SQLITE_DONE)
+        // Finalizar la consulta de verificación
+        sqlite3_finalize(check_stmt);
+
+        if (count == 0)
         {
-            cout << "Libro borrado exitosamente." << endl;
+            cout << "Error: El libro no existe y no se puede borrar." << endl;
             sleep(2);
         }
         else
         {
-            cout << "Error al borrar el libro: " << sqlite3_errmsg(DB) << endl;
-            sleep(2);
+            // Proceder a borrar el libro si existe
+            string sql = "DELETE FROM libros WHERE titulo = ? AND autor = ? AND anio = ?";
+            sqlite3_stmt *stmt;
+            rc = sqlite3_prepare_v2(DB, sql.c_str(), -1, &stmt, NULL);
+
+            if (rc == SQLITE_OK)
+            {
+                // Asociar los parámetros a la consulta de borrado
+                sqlite3_bind_text(stmt, 1, titulo.c_str(), -1, SQLITE_STATIC);
+                sqlite3_bind_text(stmt, 2, autor.c_str(), -1, SQLITE_STATIC);
+                sqlite3_bind_int(stmt, 3, anio);
+
+                rc = sqlite3_step(stmt);
+
+                if (rc == SQLITE_DONE)
+                {
+                    cout << "Libro borrado exitosamente." << endl;
+                    sleep(2);
+                }
+                else
+                {
+                    cout << "Error al borrar el libro: " << sqlite3_errmsg(DB) << endl;
+                    sleep(2);
+                }
+            }
+            else
+            {
+                cout << "Error al preparar la consulta: " << sqlite3_errmsg(DB) << endl;
+                sleep(2);
+            }
+
+            sqlite3_finalize(stmt);
         }
     }
     else
     {
-        cout << "Error al preparar la consulta: " << sqlite3_errmsg(DB) << endl;
+        cout << "Error al preparar la consulta de verificación: " << sqlite3_errmsg(DB) << endl;
         sleep(2);
     }
 
-    sqlite3_finalize(stmt);
     sqlite3_close(DB);
 }
 
 void modificarLibro(const string &titulo, const string &autor, int anio, const string &nuevoTitulo, const string &nuevoAutor, int nuevoAnio, int disponible = 1)
 {
     sqlite3_open("BSUHMD.db", &DB);
-    string sql = R"(
-        UPDATE libros 
-        SET titulo = ?, autor = ?, anio = ?, disponible = ? 
-        WHERE titulo = ? AND autor = ? AND anio = ?
-    )";
 
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(DB, sql.c_str(), -1, &stmt, NULL);
+    // Verificar si el libro existe en la base de datos
+    string check_sql = "SELECT COUNT(*) FROM libros WHERE titulo = ? AND autor = ? AND anio = ?";
+    sqlite3_stmt *check_stmt;
+    int rc = sqlite3_prepare_v2(DB, check_sql.c_str(), -1, &check_stmt, NULL);
 
     if (rc == SQLITE_OK)
     {
-        // Asociar los parámetros de actualización
-        sqlite3_bind_text(stmt, 1, nuevoTitulo.c_str(), -1, SQLITE_STATIC);
-        sqlite3_bind_text(stmt, 2, nuevoAutor.c_str(), -1, SQLITE_STATIC);
-        sqlite3_bind_int(stmt, 3, nuevoAnio);
-        sqlite3_bind_int(stmt, 4, disponible);
+        // Asociar los parámetros a la consulta de verificación
+        sqlite3_bind_text(check_stmt, 1, titulo.c_str(), -1, SQLITE_STATIC);
+        sqlite3_bind_text(check_stmt, 2, autor.c_str(), -1, SQLITE_STATIC);
+        sqlite3_bind_int(check_stmt, 3, anio);
 
-        // Asociar los parámetros de identificación del libro
-        sqlite3_bind_text(stmt, 5, titulo.c_str(), -1, SQLITE_STATIC);
-        sqlite3_bind_text(stmt, 6, autor.c_str(), -1, SQLITE_STATIC);
-        sqlite3_bind_int(stmt, 7, anio);
+        // Ejecutar la consulta de verificación
+        rc = sqlite3_step(check_stmt);
+        int count = sqlite3_column_int(check_stmt, 0);
 
-        rc = sqlite3_step(stmt);
+        // Finalizar la consulta de verificación
+        sqlite3_finalize(check_stmt);
 
-        if (rc == SQLITE_DONE)
+        if (count == 0)
         {
-            cout << "Libro modificado exitosamente." << endl;
+            cout << "Error: El libro no existe y no se puede modificar." << endl;
             sleep(2);
         }
         else
         {
-            cout << "Error al modificar el libro: " << sqlite3_errmsg(DB) << endl;
-            sleep(2);
+            // Proceder a modificar el libro si existe
+            string sql = "UPDATE libros SET titulo = ?, autor = ?, anio = ? WHERE titulo = ? AND autor = ? AND anio = ?";
+            sqlite3_stmt *stmt;
+            rc = sqlite3_prepare_v2(DB, sql.c_str(), -1, &stmt, NULL);
+
+            if (rc == SQLITE_OK)
+            {
+                // Asociar los parámetros a la consulta de actualización
+                sqlite3_bind_text(stmt, 1, nuevoTitulo.c_str(), -1, SQLITE_STATIC);
+                sqlite3_bind_text(stmt, 2, nuevoAutor.c_str(), -1, SQLITE_STATIC);
+                sqlite3_bind_int(stmt, 3, nuevoAnio);
+                sqlite3_bind_text(stmt, 4, titulo.c_str(), -1, SQLITE_STATIC);
+                sqlite3_bind_text(stmt, 5, autor.c_str(), -1, SQLITE_STATIC);
+                sqlite3_bind_int(stmt, 6, anio);
+
+                rc = sqlite3_step(stmt);
+
+                if (rc == SQLITE_DONE)
+                {
+                    cout << "Libro modificado exitosamente." << endl;
+                    sleep(2);
+                }
+                else
+                {
+                    cout << "Error al modificar el libro: " << sqlite3_errmsg(DB) << endl;
+                    sleep(2);
+                }
+            }
+            else
+            {
+                cout << "Error al preparar la consulta: " << sqlite3_errmsg(DB) << endl;
+                sleep(2);
+            }
+
+            sqlite3_finalize(stmt);
         }
     }
     else
     {
-        cout << "Error al preparar la consulta: " << sqlite3_errmsg(DB) << endl;
+        cout << "Error al preparar la consulta de verificación: " << sqlite3_errmsg(DB) << endl;
         sleep(2);
     }
 
-    sqlite3_finalize(stmt);
     sqlite3_close(DB);
 }
 
@@ -428,6 +502,9 @@ void verTodosLosUsuarios()
     }
 
     cout << "Lista de usuarios:" << endl;
+
+    bool hayUsuarios = false; // Variable para verificar si hay usuarios
+
     while (sqlite3_step(stmt) == SQLITE_ROW)
     {
         int id_usuario = sqlite3_column_int(stmt, 0);
@@ -436,6 +513,14 @@ void verTodosLosUsuarios()
 
         // Imprime la información del usuario
         cout << "ID: " << id_usuario << ", Nombre: " << nombre << ", C.I.: " << CI << endl;
+        hayUsuarios = true; // Si se encontró al menos un usuario
+        cout << "Espere un momento... " << endl;
+    }
+
+    if (!hayUsuarios)
+    {
+        cout << "No hay usuarios registrados." << endl;
+        cout << "Por favor, registrese primero." << endl;
     }
 
     sleep(10);
@@ -459,7 +544,15 @@ void eliminar_usuario(string CI)
 
         if (rc == SQLITE_DONE)
         {
-            cout << "Usuario eliminado exitosamente." << endl;
+            // Verificar si se eliminó alguna fila
+            if (sqlite3_changes(DB) > 0)
+            {
+                cout << "Usuario eliminado exitosamente." << endl;
+            }
+            else
+            {
+                cout << "El usuario con CI " << CI << " no existe." << endl;
+            }
             sleep(2);
         }
         else
@@ -480,20 +573,9 @@ void eliminar_usuario(string CI)
 
 // Función de prestamos
 
-void agregarPrestamo()
+void agregarPrestamo(const string &CI, const string &titulo)
 {
     sqlite3_open("BSUHMD.db", &DB);
-    string CI, titulo;
-
-    // Solicitar la cédula del usuario y el título del libro
-    cout << "Ingrese la CI del usuario: ";
-    cin >> CI;
-    system("clear");
-    cout << "Ingrese el título del libro: ";
-    cin.ignore(); // Limpiar el buffer
-    getline(cin, titulo);
-    system("clear");
-    // Obtener el id_usuario a partir de la cédula
     string sqlUsuario = "SELECT id_usuario FROM usuarios WHERE CI = ?;";
     sqlite3_stmt *stmtUsuario;
     int id_usuario = -1;
@@ -510,7 +592,7 @@ void agregarPrestamo()
         }
         else
         {
-            cout << "Error: Usuario no encontrado." << endl;
+            cout << "Error: Usuario con CI " << CI << " no encontrado." << endl;
             sleep(2);
             sqlite3_finalize(stmtUsuario);
             return;
@@ -524,7 +606,7 @@ void agregarPrestamo()
     }
     sqlite3_finalize(stmtUsuario);
 
-    // Obtener el id_libro a partir del título
+    // Obtener el id_libro y disponibilidad a partir del título
     string sqlLibro = "SELECT id_libro, disponible FROM libros WHERE titulo = ?;";
     sqlite3_stmt *stmtLibro;
     int id_libro = -1;
@@ -543,7 +625,7 @@ void agregarPrestamo()
         }
         else
         {
-            cout << "Error: Libro no encontrado." << endl;
+            cout << "Error: Libro con título \"" << titulo << "\" no encontrado." << endl;
             sleep(2);
             sqlite3_finalize(stmtLibro);
             return;
@@ -560,7 +642,7 @@ void agregarPrestamo()
     // Verificar si el libro está disponible
     if (disponible == 0)
     {
-        cout << "Error: El libro no está disponible." << endl;
+        cout << "Error: El libro \"" << titulo << "\" ya ha sido prestado o no está disponible." << endl;
         sleep(2);
         return;
     }
@@ -610,7 +692,6 @@ void agregarPrestamo()
     }
 
     sqlite3_finalize(stmtPrestamo);
-    sqlite3_close(DB);
 }
 
 void mostrarPrestamos()
@@ -629,6 +710,8 @@ void mostrarPrestamos()
     }
 
     cout << "Lista de prestamos:" << endl;
+    bool hayPrestamos = false; // Bandera para verificar si hay préstamos
+
     while (sqlite3_step(stmt) == SQLITE_ROW)
     {
         int id_prestamo = sqlite3_column_int(stmt, 0);
@@ -638,7 +721,14 @@ void mostrarPrestamos()
 
         // Imprime la información del prestatario
         cout << "ID: " << id_prestamo << ", Nombre: " << nombre << ", Libro: " << libro << ", Fecha de prestamo: " << fecha << endl;
+        hayPrestamos = true; // Si hay préstamos, actualizamos la bandera
     }
+
+    if (!hayPrestamos)
+    {
+        cout << "No hay préstamos registrados." << endl;
+    }
+
     sleep(10);
     sqlite3_finalize(stmt);
     sqlite3_close(DB);
@@ -647,19 +737,49 @@ void mostrarPrestamos()
 void devolverLibro(string CI, string titulo)
 {
     sqlite3_open("BSUHMD.db", &DB);
+
     // Buscar el ID del usuario mediante la CI
     string sqlUsuario = "SELECT id_usuario FROM usuarios WHERE CI = ?;";
     sqlite3_stmt *stmtUsuario;
     int rc = sqlite3_prepare_v2(DB, sqlUsuario.c_str(), -1, &stmtUsuario, NULL);
     sqlite3_bind_text(stmtUsuario, 1, CI.c_str(), -1, SQLITE_STATIC);
+
     if (rc == SQLITE_OK)
     {
-
         if (sqlite3_step(stmtUsuario) == SQLITE_ROW)
         {
             int id_usuario = sqlite3_column_int(stmtUsuario, 0);
+
+            // Verificar si el usuario tiene algún libro prestado
+            string sqlPrestamos = "SELECT COUNT(*) FROM prestamos WHERE id_usuario = ?;";
+            sqlite3_stmt *stmtPrestamos;
+            if (sqlite3_prepare_v2(DB, sqlPrestamos.c_str(), -1, &stmtPrestamos, NULL) == SQLITE_OK)
+            {
+                sqlite3_bind_int(stmtPrestamos, 1, id_usuario);
+                if (sqlite3_step(stmtPrestamos) == SQLITE_ROW)
+                {
+                    int prestamos = sqlite3_column_int(stmtPrestamos, 0);
+                    if (prestamos == 0)
+                    {
+                        cout << "El usuario no tiene libros prestados." << endl;
+                        sqlite3_finalize(stmtPrestamos);
+                        sqlite3_finalize(stmtUsuario);
+                        sleep(2);
+                        return;
+                    }
+                }
+                sqlite3_finalize(stmtPrestamos);
+            }
+            else
+            {
+                cout << "Error al preparar la consulta de préstamos: " << sqlite3_errmsg(DB) << endl;
+                sqlite3_finalize(stmtUsuario);
+                sleep(2);
+                return;
+            }
+
             // Buscar el ID del libro mediante el nombre
-            string sqlLibro = "SELECT id_libro FROM libros WHERE titulo = ?;";
+            string sqlLibro = "SELECT id_libro, disponible FROM libros WHERE titulo = ?;";
             sqlite3_stmt *stmtLibro;
             if (sqlite3_prepare_v2(DB, sqlLibro.c_str(), -1, &stmtLibro, NULL) == SQLITE_OK)
             {
@@ -667,6 +787,17 @@ void devolverLibro(string CI, string titulo)
                 if (sqlite3_step(stmtLibro) == SQLITE_ROW)
                 {
                     int id_libro = sqlite3_column_int(stmtLibro, 0);
+                    int disponible = sqlite3_column_int(stmtLibro, 1);
+
+                    if (disponible == 1)
+                    {
+                        cout << "El libro ya está disponible, no se puede devolver." << endl;
+                        sqlite3_finalize(stmtLibro);
+                        sqlite3_finalize(stmtUsuario);
+                        sleep(2);
+                        return;
+                    }
+
                     // Actualizar el estado del libro a disponible
                     string sqlLibroDisponible = "UPDATE libros SET disponible = 1 WHERE id_libro = ?;";
                     sqlite3_stmt *stmtLibroDisponible;
@@ -677,24 +808,23 @@ void devolverLibro(string CI, string titulo)
                         sqlite3_finalize(stmtLibroDisponible);
                         cout << "Libro devuelto exitosamente." << endl;
                         sleep(2);
-                        system("clear");
                     }
                     else
                     {
-                        cout << "Error al preparar la consulta: " << sqlite3_errmsg(DB) << endl;
+                        cout << "Error al preparar la consulta para actualizar el libro: " << sqlite3_errmsg(DB) << endl;
                         sleep(2);
                     }
-                    sqlite3_finalize(stmtLibro);
                 }
                 else
                 {
                     cout << "Libro no encontrado." << endl;
                     sleep(2);
                 }
+                sqlite3_finalize(stmtLibro);
             }
             else
             {
-                cout << "Error al preparar la consulta: " << sqlite3_errmsg(DB) << endl;
+                cout << "Error al preparar la consulta del libro: " << sqlite3_errmsg(DB) << endl;
                 sleep(2);
             }
             sqlite3_finalize(stmtUsuario);
@@ -710,5 +840,98 @@ void devolverLibro(string CI, string titulo)
         cout << "Error al preparar la consulta: " << sqlite3_errmsg(DB) << endl;
         sleep(2);
     }
+
+    sqlite3_close(DB);
+}
+
+bool validarAdmin(string username, string password)
+{
+    sqlite3_open("BSUHMD.db", &DB);
+
+    const char *sql = "SELECT * FROM admin WHERE username = ? AND password = ?;";
+    sqlite3_stmt *stmt;
+
+    if (sqlite3_prepare_v2(DB, sql, -1, &stmt, NULL) == SQLITE_OK)
+    {
+        sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_STATIC);
+        sqlite3_bind_text(stmt, 2, password.c_str(), -1, SQLITE_STATIC);
+
+        if (sqlite3_step(stmt) == SQLITE_ROW)
+        {
+            sqlite3_finalize(stmt);
+            sqlite3_close(DB);
+            return true;
+        }
+        else
+        {
+            sqlite3_finalize(stmt);
+            sqlite3_close(DB);
+            return false;
+        }
+    }
+    sqlite3_close(DB);
+    return false;
+}
+
+void cambiarContrasena(const string &username, const string &nuevaContrasena)
+{
+    sqlite3 *DB;
+    int rc = sqlite3_open("BSUHMD.db", &DB);  // Abre la base de datos
+
+    if (rc)
+    {
+        cout << "Error al abrir la base de datos: " << sqlite3_errmsg(DB) << endl;
+        return;
+    }
+
+    // Verificar si el usuario existe en la tabla admin
+    string sql = "SELECT id_admin FROM admin WHERE username = ?;";
+    sqlite3_stmt *stmt;
+    rc = sqlite3_prepare_v2(DB, sql.c_str(), -1, &stmt, NULL);
+
+    if (rc != SQLITE_OK)
+    {
+        cout << "Error al preparar la consulta: " << sqlite3_errmsg(DB) << endl;
+        sqlite3_close(DB);
+        return;
+    }
+
+    sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_STATIC);
+
+    if (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        // El usuario existe, ahora actualizamos la contraseña
+        string updateSql = "UPDATE admin SET password = ? WHERE username = ?;";
+        sqlite3_stmt *updateStmt;
+        rc = sqlite3_prepare_v2(DB, updateSql.c_str(), -1, &updateStmt, NULL);
+
+        if (rc == SQLITE_OK)
+        {
+            sqlite3_bind_text(updateStmt, 1, nuevaContrasena.c_str(), -1, SQLITE_STATIC);
+            sqlite3_bind_text(updateStmt, 2, username.c_str(), -1, SQLITE_STATIC);
+
+            rc = sqlite3_step(updateStmt);
+            if (rc == SQLITE_DONE)
+            {
+                cout << "Contraseña actualizada exitosamente." << endl;
+            }
+            else
+            {
+                cout << "Error al actualizar la contraseña: " << sqlite3_errmsg(DB) << endl;
+            }
+
+            sqlite3_finalize(updateStmt);
+        }
+        else
+        {
+            cout << "Error al preparar la consulta de actualización: " << sqlite3_errmsg(DB) << endl;
+        }
+    }
+    else
+    {
+        cout << "Usuario no encontrado." << endl;
+    }
+
+    sqlite3_finalize(stmt);
     sqlite3_close(DB);
 }
